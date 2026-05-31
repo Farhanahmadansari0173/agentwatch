@@ -1,0 +1,125 @@
+<dashboard version="1.1" theme="dark">
+  <label>AgentWatch — AI Observability</label>
+  <description>Real-time monitoring for Splunk AI agents</description>
+
+  <row>
+    <panel>
+      <title>🔥 Agent Tool Latency (Flame Graph)</title>
+      <chart>
+        <search>
+          <query>index=agentwatch_traces earliest=-24h | stats avg(latency_ms) as avg_latency, count as calls, max(latency_ms) as max_latency by tool | eval status=if(avg_latency>3000,"SLOW",if(avg_latency>1500,"MEDIUM","FAST")) | sort -avg_latency</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.orientation">bar</option>
+        <option name="charting.axisTitleX.text">Tool Name</option>
+        <option name="charting.axisTitleY.text">Avg Latency (ms)</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="height">300</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>📊 Tool Call Volume (Last 24h)</title>
+      <chart>
+        <search>
+          <query>index=agentwatch_traces earliest=-24h | timechart span=1h count by tool</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="height">300</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>🎯 Quality Score Trend (Hallucination + Relevance)</title>
+      <chart>
+        <search>
+          <query>index=agentwatch_quality earliest=-7d | timechart span=6h avg(hallucination_score) as hallucination, avg(relevance_score) as relevance, avg(completeness_score) as completeness</query>
+          <earliest>-7d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">Score (0-1)</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="height">300</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>⚠️ Flagged Responses (Last 7 Days)</title>
+      <chart>
+        <search>
+          <query>index=agentwatch_quality earliest=-7d | timechart span=6h count(eval(flagged="True")) as flagged, count(eval(flagged="False")) as passed</query>
+          <earliest>-7d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="height">300</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>📈 Token Usage Forecast (MLTK Prediction)</title>
+      <chart>
+        <search>
+          <query>index=agentwatch_traces earliest=-7d | timechart span=1h sum(tokens_estimated) as hourly_tokens | fillnull value=0 hourly_tokens | predict hourly_tokens future_timespan=24 holdback=0 upper95=upper95 lower95=lower95</query>
+          <earliest>-7d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.axisTitleY.text">Tokens/hr</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="height">300</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>🔴 Token Spike Anomalies</title>
+      <table>
+        <search>
+          <query>index=agentwatch_traces earliest=-7d | timechart span=1h sum(tokens_estimated) as hourly_tokens | fillnull value=0 hourly_tokens | predict hourly_tokens future_timespan=24 holdback=0 upper95=upper95 | eval anomaly=if(hourly_tokens > 'upper95(prediction(hourly_tokens))', "🔴 SPIKE", "✅ Normal") | where anomaly="🔴 SPIKE" | eval hourly_tokens=round(hourly_tokens,0) | eval predicted=round('prediction(hourly_tokens)',0) | eval upper=round('upper95(prediction(hourly_tokens))',0) | table _time, hourly_tokens, predicted, upper, anomaly</query>
+          <earliest>-7d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="height">300</option>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>🔧 Self-Healing Recommendations</title>
+      <table>
+        <search>
+          <query>index=main sourcetype=agentwatch:notable earliest=-7d | eval confidence=round(confidence,2) | table _time, tool, severity, root_cause, fix, spl_correction, confidence | sort -_time</query>
+          <earliest>-7d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="height">300</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>📋 System Health Summary</title>
+      <table>
+        <search>
+          <query>index=agentwatch_traces earliest=-24h | stats count as total_calls, avg(latency_ms) as avg_latency, count(eval(status="error")) as errors by tool | eval avg_latency=round(avg_latency,0) | eval error_rate=round(errors/total_calls*100,1)."%" | sort -total_calls</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="height">300</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
