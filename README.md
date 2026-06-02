@@ -146,7 +146,7 @@ python test_integration.py
 
 ## 🎬 Demo
 
-Watch the demo video: [YouTube Link]
+Watch the demo video: https://youtu.be/-21cVP-gzXU
 
 The demo shows:
 1. Live MCP agent call being captured and traced
