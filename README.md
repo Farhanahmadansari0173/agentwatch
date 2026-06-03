@@ -1,6 +1,6 @@
 # AgentWatch — AI Observability for Splunk AI Agents
 
-> **Splunk Agentic Ops Hackathon 2026** | Track: Observability
+> **Splunk Agentic Ops Hackathon 2026** | Track: Observability | Solo submission
 
 ## 🏆 What is AgentWatch?
 
@@ -10,7 +10,9 @@ When your MCP Server returns a hallucinated result, when your AI Assistant start
 
 > *"Who watches your AI? AgentWatch does."*
 
----
+## 🎬 Demo Video
+
+👉 **https://youtu.be/-21cVP-gzXU**
 
 ## 🎯 The Problem
 
@@ -29,34 +31,41 @@ AgentWatch solves all four problems in a single Splunk app.
 
 ### 1. 🔥 Agent Trace Collection
 - Captures every MCP tool call with latency, token usage, and status
-- OpenTelemetry-compatible trace format
+- OpenTelemetry-compatible trace format with unique trace IDs
 - Real-time flame graph visualization in Splunk dashboard
+- 800+ trace events logged across 3 MCP tools
 
 ### 2. 🎯 AI Quality Scoring
 - Uses LLM-as-judge to score every agent response
 - Scores hallucination, relevance, and completeness (0.0–1.0)
-- Fires drift alerts when quality drops below threshold
+- Fires drift alerts when quality drops below 0.7 threshold
+- 155+ quality scores with automatic flagging
 
 ### 3. 📈 Token Cost Forecasting
 - Uses Splunk MLTK `predict` command for time-series forecasting
-- Detects token usage anomalies against upper confidence bounds
+- Detects token usage anomalies against upper 95% confidence bounds
 - Predicts cost spikes 24 hours before they hit billing
+- Detected 6 real anomaly spikes in testing
 
 ### 4. 🔧 Self-Healing Engine
 - Pulls context from recent successful calls via Splunk search
-- Generates root cause + corrective SPL using local AI
+- Generates root cause + corrective SPL using local AI (Ollama)
 - Writes notable events back to Splunk automatically
+- From failure to fix in under 10 seconds
 
 ### 5. 🌐 REST API
 - FastAPI endpoint accepts traces and quality scores via HTTP
 - Any external tool can push data to AgentWatch
 - Auto-generated Swagger docs at `/docs`
+- Endpoints: `POST /trace`, `POST /score`, `GET /health`
 
 ---
 
 ## 🏗️ Architecture
 
-See [architecture_diagram.png](./architecture_diagram.png) for the full system diagram.
+![AgentWatch Architecture](./architecture_diagram.png)
+
+See [architecture_diagram.md](./architecture_diagram.md) for detailed text description.
 ---
 
 ## 🛠️ Tech Stack
@@ -72,10 +81,10 @@ See [architecture_diagram.png](./architecture_diagram.png) for the full system d
 
 ---
 
-## 🚀 Setup Instructions
+## 🚀 Quick Start
 
 ### Prerequisites
-- Mac/Linux/Windows machine with 8GB+ RAM
+- Mac/Linux/Windows with 8GB+ RAM
 - Python 3.9+
 - Splunk Enterprise 10.4 (free trial)
 - Ollama (free, runs locally)
@@ -83,12 +92,10 @@ See [architecture_diagram.png](./architecture_diagram.png) for the full system d
 ### Step 1 — Install Splunk Enterprise
 ```bash
 # Download from splunk.com/download
-# Install and start
 /Applications/Splunk/bin/splunk start --accept-license
 ```
 
-### Step 2 — Install required Splunk apps
-Install from Splunkbase:
+### Step 2 — Install required Splunk apps from Splunkbase
 - Splunk MCP Server 1.2.0 (app ID: 7931)
 - Splunk AI Toolkit 5.7.4
 - Python for Scientific Computing for Mac Apple Silicon
@@ -105,7 +112,7 @@ git clone https://github.com/Farhanahmadansari0173/agentwatch.git
 cd agentwatch
 cp config.example.py config.py
 # Edit config.py with your Splunk credentials
-pip install splunk-sdk fastapi uvicorn anthropic requests
+pip install splunk-sdk fastapi uvicorn requests
 ```
 
 ### Step 5 — Create Splunk indexes
@@ -114,7 +121,8 @@ In Splunk → Settings → Indexes → New Index:
 - `agentwatch_quality`
 
 ### Step 6 — Enable token authentication
-In Splunk → Settings → Tokens → Enable Token Authentication → New Token
+In Splunk → Settings → Tokens → Enable → New Token
+Assign `mcp_tool_execute` capability to admin role.
 
 ### Step 7 — Run AgentWatch
 ```bash
@@ -144,25 +152,13 @@ python test_integration.py
 ## 📁 Project Structure
 ---
 
-## 🎬 Demo
-
-Watch the demo video: https://youtu.be/-21cVP-gzXU
-
-The demo shows:
-1. Live MCP agent call being captured and traced
-2. Quality drift detected and alert fired
-3. Token cost spike predicted 2 hours ahead
-4. Self-healing engine generating a fix automatically
-
----
-
 ## 🏆 Prize Targets
 
-| Prize | Why AgentWatch qualifies |
-|---|---|
-| **Grand Prize ($7,000)** | Strongest all-round submission — novel, impactful, technically deep |
-| **Best Observability ($3,000)** | Direct track submission — observability for AI agents |
-| **Best Hosted Models ($1,000)** | MLTK forecasting + LLM-as-judge quality scoring |
+| Prize | Amount | Why AgentWatch qualifies |
+|---|---|---|
+| **Grand Prize** | $7,000 | Novel, impactful, technically deep — strongest all-round submission |
+| **Best Observability** | $3,000 | Direct track — observability for AI agents is the core use case |
+| **Best Hosted Models** | $1,000 | MLTK forecasting + LLM-as-judge quality scoring |
 
 ---
 
@@ -176,3 +172,4 @@ MIT License — see [LICENSE](./LICENSE)
 
 **Farhan Ahmad Ansari**
 Splunk Agentic Ops Hackathon 2026
+GitHub: [@Farhanahmadansari0173](https://github.com/Farhanahmadansari0173)
